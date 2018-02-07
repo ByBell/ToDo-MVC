@@ -5,45 +5,46 @@ Importer les composants de la route
     const router = express.Router();
     const mongodb = require('mongodb');
 //
-    
+
 /*
 Connexion à la BDD 
 Configuration de MongoDB
 */
     let ObjectId = mongodb.ObjectID;
     let MongoClient = mongodb.MongoClient;
-    let mongodbUrl = 'mongodb://127.0.0.1:27017/todo';
+    let mongodbUrl = 'mongodb://127.0.0.1:27017';
 //
+
 
 /*
 Définition des routes
 */
-   // Afficher les tâches
-   router.get( '/gettask', (req, res, next) => {
+    // Ajout d'une tâche
+    router.post( '/addtask', (req, res, next) => {
 
         // Connexion à MongoDB
-        MongoClient.connect(mongodbUrl, (err, db) => {
+        MongoClient.connect(mongodbUrl, (err, client) => {
+
+            var db = client.db('todo');
 
             // On vérifie l'état de la connexion
             if(err) { res.send(err) }
-            else {
+            else{
 
-                // On valide la récupération des tâches
-                db.collection('tasks').find().toArray((err, tasks) => {
-
+                // Ajouter la tâche à MongoDB
+                db.collection('tasks').insert(req.body, (err, data) => {
+                    
                     // On vérifie à nouveau l'absence d'erreurs
                     if(err) { res.send(err) }
-                    else{ 
-                        // Envoyer les données au format JSON
-                        res.render('index', {'tasks' : tasks})
-                    }
+                    else{ res.send(data) }
                 })
             }
-
+            
             // Fermer la connexion
-            db.close();
+            client.close();
         })
-    })
+    });
+
 //
 
 /*
